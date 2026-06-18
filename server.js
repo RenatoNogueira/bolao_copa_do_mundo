@@ -279,6 +279,32 @@ app.post('/api/palpites/:row/confirmar', requireAdmin, async (req, res) => {
   }
 });
 
+app.delete('/api/palpites/:id', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Opcional: Buscar o palpite primeiro para excluir o arquivo do comprovante fisicamente
+    const [rows] = await pool.query('SELECT comprovante FROM palpites WHERE id = ?', [id]);
+    if (rows.length > 0 && rows[0].comprovante && rows[0].comprovante !== 'Sem comprovante') {
+      const filePath = path.join(__dirname, 'public', rows[0].comprovante);
+      if (fs.existsSync(filePath)) {
+        try { fs.unlinkSync(filePath); } catch(e) { console.error("Erro ao deletar arquivo", e); }
+      }
+    }
+
+    const [result] = await pool.query('DELETE FROM palpites WHERE id = ?', [id]);
+    
+    if (result.affectedRows > 0) {
+      res.json({ success: true });
+    } else {
+      res.status(404).json({ error: 'Palpite não encontrado' });
+    }
+  } catch (error) {
+    console.error('Erro /api/palpites DELETE:', error);
+    res.status(500).json({ error: 'Erro ao excluir palpite' });
+  }
+});
+
 app.post('/api/jogos/:id/apurar', requireAdmin, async (req, res) => {
     try {
       const { id } = req.params;
