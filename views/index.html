@@ -397,6 +397,17 @@
                 </div>
             </div>
 
+            <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 mb-8 text-center backdrop-blur-sm">
+                <p class="text-amber-400 font-medium flex items-center justify-center text-sm md:text-base">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    🏆 Premiação: 50% de todo o valor arrecadado com as apostas será destinado ao prêmio do
+                    bolão. Quanto mais participantes, maior a premiação!.
+                </p>
+            </div>
+
             <div
                 class="bg-slate-900/60 backdrop-blur-lg rounded-2xl shadow-2xl p-6 md:p-8 mb-8 border border-white/5 ring-1 ring-white/10 relative overflow-hidden">
                 <div
@@ -417,8 +428,10 @@
                     <div class="flex flex-col items-center justify-center mb-8" x-show="pixPayload">
                         <p class="text-sm font-medium text-slate-400 mb-3">Escaneie o QR Code no app do seu banco:</p>
                         <div class="p-3 bg-white rounded-2xl shadow-[0_0_15px_rgba(255,255,255,0.1)] inline-block">
-                            <img :src="'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(pixPayload)"
-                                alt="QR Code PIX" class="w-48 h-48 rounded-xl">
+                            <template x-if="pixPayload">
+                                <img :src="'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(pixPayload)"
+                                    alt="QR Code PIX" class="w-48 h-48 rounded-xl">
+                            </template>
                         </div>
                     </div>
 
