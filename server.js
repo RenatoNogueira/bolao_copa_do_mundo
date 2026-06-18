@@ -23,33 +23,30 @@ const requireAdmin = (req, res, next) => {
     }
 };
 
-// Configuração do Multer para Uploads
-const isVercel = process.env.VERCEL === '1';
-const uploadDir = isVercel ? '/tmp/uploads' : path.join(__dirname, 'public', 'uploads');
+// Configuração do Cloudinary para Uploads
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
-try {
-    if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-    }
-} catch (e) {
-    console.error("Aviso: Não foi possível criar pasta de uploads (provavelmente modo Serverless)", e);
-}
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, uploadDir),
-    filename: (req, file, cb) => {
-        // Remover espaços e caracteres estranhos
-        const safeName = file.originalname.replace(/[^a-zA-Z0-9.\-_]/g, '');
-        cb(null, Date.now() + '-' + safeName);
-    }
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'comprovantes_copa',
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp', 'pdf'],
+  },
 });
 const upload = multer({ storage });
+
+const isVercel = process.env.VERCEL === '1';
 
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
-if (isVercel) {
-    app.use('/uploads', express.static('/tmp/uploads'));
-}
 
 // Rotas limpas para as views
 app.get('/', (req, res) => {
@@ -219,7 +216,7 @@ app.post('/api/palpites', upload.single('comprovante'), async (req, res) => {
         return res.status(400).json({ error: 'O comprovante de pagamento é obrigatório' });
     }
 
-    const comprovanteUrl = `/uploads/${req.file.filename}`;
+    const comprovanteUrl = req.file.path;
     
     await pool.query(
         'INSERT INTO palpites (jogo_id, nome, telefone, gols_brasil, gols_adversario, comprovante, confirmado) VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -288,14 +285,7 @@ app.delete('/api/palpites/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Opcional: Buscar o palpite primeiro para excluir o arquivo do comprovante fisicamente
-    const [rows] = await pool.query('SELECT comprovante FROM palpites WHERE id = ?', [id]);
-    if (rows.length > 0 && rows[0].comprovante && rows[0].comprovante !== 'Sem comprovante') {
-      const filePath = path.join(__dirname, 'public', rows[0].comprovante);
-      if (fs.existsSync(filePath)) {
-        try { fs.unlinkSync(filePath); } catch(e) { console.error("Erro ao deletar arquivo", e); }
-      }
-    }
+    // Arquivos agora ficam no Cloudinary, excluímos apenas o registro do banco de dados
 
     const [result] = await pool.query('DELETE FROM palpites WHERE id = ?', [id]);
     
