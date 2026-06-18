@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Bolão Copa 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+
+<body
+    class="bg-slate-950 text-slate-200 font-sans min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black selection:bg-emerald-500/30"
+    x-data="admin()">
+    
+    <!-- Login Screen -->
+    <div x-show="!autenticado" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-slate-900/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-white/10 w-full max-w-md">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-black text-emerald-400 tracking-wider uppercase mb-2">Acesso Restrito</h2>
+                <p class="text-slate-400 text-sm">Insira suas credenciais de administrador</p>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Usuário</label>
+                    <input type="text" x-model="loginData.username" class="w-full bg-slate-950 border-slate-700 text-white rounded-xl focus:border-emerald-500 focus:ring-emerald-500 p-3" @keydown.enter="fazerLogin">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Senha</label>
+                    <input type="password" x-model="loginData.password" class="w-full bg-slate-950 border-slate-700 text-white rounded-xl focus:border-emerald-500 focus:ring-emerald-500 p-3" @keydown.enter="fazerLogin">
+                </div>
+                <div x-show="loginData.error" class="text-red-400 text-sm text-center font-medium bg-red-500/10 p-2 rounded" x-text="loginData.error" style="display:none;"></div>
+                <button @click="fazerLogin" :disabled="loginData.loading" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg active:scale-95 disabled:opacity-50 mt-4">
+                    <span x-text="loginData.loading ? 'Autenticando...' : 'Entrar no Painel'"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Content -->
+    <div x-show="autenticado" style="display: none;">
+        <header
+            class="border-b border-white/10 bg-slate-900/50 backdrop-blur-md p-6 shadow-2xl flex justify-between items-center sticky top-0 z-50">
+        <h1
+            class="text-2xl font-extrabold uppercase tracking-widest bg-gradient-to-r from-emerald-400 to-teal-200 bg-clip-text text-transparent drop-shadow-sm">
+            Painel do Administrador</h1>
+        <div class="flex items-center gap-4">
+            <a href="/"
+                class="text-sm font-medium text-emerald-400 hover:text-emerald-300 hover:underline transition-colors flex items-center">
+                Ver Bolão
+                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                </svg>
+            </a>
+            <button @click="sair" class="text-sm font-bold text-red-400 hover:text-red-300 hover:bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-500/20 transition-colors flex items-center">
+                Sair
+                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto p-4 md:p-8">
+
+        <div
+            class="bg-slate-900/60 backdrop-blur-lg rounded-2xl shadow-2xl p-6 md:p-8 mb-8 border border-white/5 ring-1 ring-white/10 relative overflow-hidden">
+            <div
+                class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-blue-500 rounded-full mix-blend-multiply filter blur-2xl opacity-10 animate-blob">
+            </div>
+
+            <h2 class="text-xl font-bold mb-6 text-slate-200 flex items-center relative z-10">
+                <svg class="w-5 h-5 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                    </path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                Configurações de Pagamento
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Chave PIX</label>
+                    <input type="text" x-model="config.pix"
+                        class="block w-full bg-slate-950 border-slate-700 text-white rounded-xl focus:border-blue-500 focus:ring-blue-500 p-3 shadow-inner transition-colors"
+                        placeholder="Sua chave PIX">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Valor do Bolão (R$)</label>
+                    <input type="number" x-model="config.valor"
+                        class="block w-full bg-slate-950 border-slate-700 text-white rounded-xl focus:border-blue-500 focus:ring-blue-500 p-3 shadow-inner transition-colors"
+                        placeholder="20">
+                </div>
+            </div>
+            <div class="mt-6 flex items-center relative z-10">
+                <button @click="salvarConfig" :disabled="loadingConfig"
+                    class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-6 rounded-lg shadow-lg shadow-blue-500/20 transition-all transform hover:scale-[1.02] active:scale-95 disabled:opacity-50">
+                    Salvar Configurações
+                </button>
+                <span x-show="msgConfig" class="ml-4 text-emerald-400 text-sm font-medium" x-text="msgConfig"></span>
+            </div>
+        </div>
+
+        <div
+            class="bg-slate-900/60 backdrop-blur-lg rounded-2xl shadow-2xl p-6 md:p-8 mb-8 border border-white/5 ring-1 ring-white/10 relative overflow-hidden">
+            <div
+                class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-emerald-500 rounded-full mix-blend-multiply filter blur-2xl opacity-10 animate-blob">
+            </div>
+
+            <h2 class="text-xl font-bold mb-6 text-slate-200 flex items-center relative z-10">
+                <svg class="w-5 h-5 mr-2 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Adicionar Jogo do Brasil
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Data e Hora</label>
+                    <input type="datetime-local" x-model="novoJogo.data"
+                        class="block w-full bg-slate-950 border-slate-700 text-white rounded-xl focus:border-emerald-500 focus:ring-emerald-500 p-3 shadow-inner transition-colors [color-scheme:dark]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Adversário</label>
+                    <select x-model="novoJogo.adversario"
+                        class="block w-full bg-slate-950 border-slate-700 text-white rounded-xl focus:border-emerald-500 focus:ring-emerald-500 p-3 shadow-inner transition-colors">
+                        <option value="" disabled selected>Selecione um país...</option>
+                        <option value="Alemanha 🇩🇪">Alemanha 🇩🇪</option>
+                        <option value="Arábia Saudita 🇸🇦">Arábia Saudita 🇸🇦</option>
+                        <option value="Argentina 🇦🇷">Argentina 🇦🇷</option>
+                        <option value="Austrália 🇦🇺">Austrália 🇦🇺</option>
+                        <option value="Bélgica 🇧🇪">Bélgica 🇧🇪</option>
+                        <option value="Bolívia 🇧🇴">Bolívia 🇧🇴</option>
+                        <option value="Camarões 🇨🇲">Camarões 🇨🇲</option>
+                        <option value="Canadá 🇨🇦">Canadá 🇨🇦</option>
+                        <option value="Catar 🇶🇦">Catar 🇶🇦</option>
+                        <option value="Chile 🇨🇱">Chile 🇨🇱</option>
+                        <option value="China 🇨🇳">China 🇨🇳</option>
+                        <option value="Colômbia 🇨🇴">Colômbia 🇨🇴</option>
+                        <option value="Coreia do Sul 🇰🇷">Coreia do Sul 🇰🇷</option>
+                        <option value="Costa do Marfim 🇨🇮">Costa do Marfim 🇨🇮</option>
+                        <option value="Costa Rica 🇨🇷">Costa Rica 🇨🇷</option>
+                        <option value="Croácia 🇭🇷">Croácia 🇭🇷</option>
+                        <option value="Dinamarca 🇩🇰">Dinamarca 🇩🇰</option>
+                        <option value="Egito 🇪🇬">Egito 🇪🇬</option>
+                        <option value="Equador 🇪🇨">Equador 🇪🇨</option>
+                        <option value="Espanha 🇪🇸">Espanha 🇪🇸</option>
+                        <option value="EUA 🇺🇸">EUA 🇺🇸</option>
+                        <option value="França 🇫🇷">França 🇫🇷</option>
+                        <option value="Gana 🇬🇭">Gana 🇬🇭</option>
+                        <option value="Haiti 🇭🇹">Haiti 🇭🇹</option>
+                        <option value="Holanda 🇳🇱">Holanda 🇳🇱</option>
+                        <option value="Inglaterra 🏴󠁧󠁢󠁥󠁮󠁧󠁿">Inglaterra 🏴󠁧󠁢󠁥󠁮󠁧󠁿</option>
+                        <option value="Irã 🇮🇷">Irã 🇮🇷</option>
+                        <option value="Itália 🇮🇹">Itália 🇮🇹</option>
+                        <option value="Jamaica 🇯🇲">Jamaica 🇯🇲</option>
+                        <option value="Japão 🇯🇵">Japão 🇯🇵</option>
+                        <option value="Marrocos 🇲🇦">Marrocos 🇲🇦</option>
+                        <option value="México 🇲🇽">México 🇲🇽</option>
+                        <option value="Nigéria 🇳🇬">Nigéria 🇳🇬</option>
+                        <option value="Nova Zelândia 🇳🇿">Nova Zelândia 🇳🇿</option>
+                        <option value="País de Gales 🏴󠁧󠁢󠁷󠁬󠁳󠁿">País de Gales 🏴󠁧󠁢󠁷󠁬󠁳󠁿</option>
+                        <option value="Paraguai 🇵🇾">Paraguai 🇵🇾</option>
+                        <option value="Peru 🇵🇪">Peru 🇵🇪</option>
+                        <option value="Polônia 🇵🇱">Polônia 🇵🇱</option>
+                        <option value="Portugal 🇵🇹">Portugal 🇵🇹</option>
+                        <option value="Senegal 🇸🇳">Senegal 🇸🇳</option>
+                        <option value="Sérvia 🇷🇸">Sérvia 🇷🇸</option>
+                        <option value="Suécia 🇸🇪">Suécia 🇸🇪</option>
+                        <option value="Suíça 🇨🇭">Suíça 🇨🇭</option>
+                        <option value="Tunísia 🇹🇳">Tunísia 🇹🇳</option>
+                        <option value="Ucrânia 🇺🇦">Ucrânia 🇺🇦</option>
+                        <option value="Uruguai 🇺🇾">Uruguai 🇺🇾</option>
+                        <option value="Venezuela 🇻🇪">Venezuela 🇻🇪</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Local / Estádio</label>
+                    <input type="text" x-model="novoJogo.local"
+                        class="block w-full bg-slate-950 border-slate-700 text-white rounded-xl focus:border-emerald-500 focus:ring-emerald-500 p-3 shadow-inner transition-colors"
+                        placeholder="Estádio Azteca">
+                </div>
+            </div>
+            <div class="mt-6 flex items-center relative z-10">
+                <button @click="adicionarJogo" :disabled="loadingJogo"
+                    class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-6 rounded-lg shadow-lg shadow-emerald-500/20 transition-all transform hover:scale-[1.02] active:scale-95 disabled:opacity-50">
+                    Adicionar Jogo
+                </button>
+                <span x-show="msgJogo" class="ml-4 text-emerald-400 text-sm font-medium" x-text="msgJogo"></span>
+            </div>
+        </div>
+
+        <div
+            class="bg-slate-900/60 backdrop-blur-lg rounded-2xl shadow-2xl p-6 md:p-8 mb-8 border border-white/5 ring-1 ring-white/10 relative overflow-hidden">
+            <h2 class="text-xl font-bold mb-6 text-slate-200 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                    </path>
+                </svg>
+                Jogos Cadastrados
+            </h2>
+            <ul class="divide-y divide-slate-800 border-t border-slate-800">
+                <template x-for="jogo in jogos" :key="jogo.id">
+                    <li class="py-4 flex justify-between items-center group">
+                        <div>
+                            <div class="flex items-center font-bold text-lg text-slate-200">
+                                Brasil <img src="https://flagcdn.com/w40/br.png" alt="Brasil"
+                                    class="w-5 h-auto shadow-sm rounded-[2px] mx-2">
+                                <span class="text-slate-500 mx-2">x</span>
+                                <template x-if="getFlagUrl(jogo.adversario)">
+                                    <img :src="getFlagUrl(jogo.adversario)" :alt="cleanCountryName(jogo.adversario)"
+                                        class="w-5 h-auto shadow-sm rounded-[2px] mx-2">
+                                </template>
+                                <span x-text="cleanCountryName(jogo.adversario)"></span>
+                            </div>
+                            <div class="mt-1 flex items-center text-sm text-slate-400">
+                                <svg class="w-4 h-4 mr-1 text-slate-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span class="mr-4" x-text="formatarData(jogo.data)"></span>
+                                <svg class="w-4 h-4 mr-1 text-slate-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                                    </path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                                <span x-text="jogo.local"></span>
+                            </div>
+                        </div>
+                        <button @click="excluirJogo(jogo.id)" title="Excluir Jogo"
+                            class="text-red-400 hover:text-red-300 p-2 rounded hover:bg-red-500/10 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </li>
+                </template>
+                <li x-show="jogos.length === 0" class="py-6 text-slate-500 italic text-center">Nenhum jogo cadastrado.
+                </li>
+            </ul>
+        </div>
+        <!-- Apuração de Resultados -->
+        <div
+            class="bg-slate-900/60 backdrop-blur-lg rounded-2xl shadow-2xl p-6 md:p-8 mb-8 border border-white/5 ring-1 ring-white/10 relative overflow-hidden">
+            <div
+                class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-amber-500 rounded-full mix-blend-multiply filter blur-2xl opacity-10 animate-blob">
+            </div>
+
+            <h2 class="text-xl font-bold mb-6 text-slate-200 flex items-center relative z-10">
+                <svg class="w-5 h-5 mr-2 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z">
+                    </path>
+                </svg>
+                Apuração de Resultados
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10 mb-6">
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Selecione o Jogo</label>
+                    <select x-model="apuracao.jogo_id"
+                        class="block w-full bg-slate-950 border-slate-700 text-white rounded-xl focus:border-amber-500 focus:ring-amber-500 p-3 shadow-inner transition-colors">
+                        <option value="" disabled selected>Escolha um jogo...</option>
+                        <template x-for="jogo in jogos" :key="jogo.id">
+                            <option :value="jogo.id"
+                                x-text="'Brasil x ' + cleanCountryName(jogo.adversario) + ' (' + formatarData(jogo.data) + ')'">
+                            </option>
+                        </template>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Gols Brasil 🇧🇷</label>
+                    <input type="number" min="0" x-model="apuracao.gols_brasil"
+                        class="block w-full bg-slate-950 border-slate-700 text-white rounded-xl focus:border-amber-500 focus:ring-amber-500 p-3 shadow-inner transition-colors"
+                        placeholder="0">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Gols Adversário</label>
+                    <input type="number" min="0" x-model="apuracao.gols_adversario"
+                        class="block w-full bg-slate-950 border-slate-700 text-white rounded-xl focus:border-amber-500 focus:ring-amber-500 p-3 shadow-inner transition-colors"
+                        placeholder="0">
+                </div>
+            </div>
+
+            <div class="flex items-center relative z-10">
+                <button @click="calcularApuracao()"
+                    class="bg-amber-600 hover:bg-amber-500 text-white font-bold py-2.5 px-6 rounded-lg shadow-lg shadow-amber-500/20 transition-all transform hover:scale-[1.02] active:scale-95 flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z">
+                        </path>
+                    </svg>
+                    Apurar Resultados
+                </button>
+            </div>
+        </div>
+
+        <!-- Lista de Palpites -->
+        <div
+            class="bg-slate-900/60 backdrop-blur-lg rounded-2xl shadow-2xl mb-8 border border-white/5 ring-1 ring-white/10 relative overflow-hidden">
+            <div class="p-6 md:p-8 border-b border-slate-800">
+                <h2 class="text-xl font-bold text-slate-200 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+                        </path>
+                    </svg>
+                    Palpites e Comprovantes
+                </h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-800">
+                    <thead class="bg-slate-950/50">
+                        <tr>
+                            <th
+                                class="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                Usuário</th>
+                            <th
+                                class="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                Telefone</th>
+                            <th
+                                class="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                Jogo (ID)</th>
+                            <th
+                                class="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                Palpite</th>
+                            <th
+                                class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                Comprovante</th>
+                            <th
+                                class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                Pago?</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/50 bg-slate-900/20">
+                        <template x-for="p in palpites" :key="p.row">
+                            <tr class="hover:bg-slate-800/40 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-200"
+                                    x-text="p.nome"></td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-400 font-mono"
+                                    x-text="p.telefone"></td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500" x-text="p.jogo_id"></td>
+                                <td
+                                    class="px-6 py-4 whitespace-nowrap text-sm text-emerald-400 font-bold bg-slate-950/30 flex items-center">
+                                    BR <img src="https://flagcdn.com/w40/br.png"
+                                        class="w-4 ml-1 mr-2 rounded-sm shadow-sm inline-block">
+                                    <span class="text-white text-base" x-text="p.gols_brasil"></span>
+                                    <span class="text-slate-500 mx-1">x</span>
+                                    <span class="text-white text-base" x-text="p.gols_adversario"></span>
+                                    <template x-if="getFlagUrl(jogo_adversario(p.jogo_id))">
+                                        <img :src="getFlagUrl(jogo_adversario(p.jogo_id))"
+                                            class="w-4 ml-2 mr-1 rounded-sm shadow-sm inline-block">
+                                    </template>
+                                    ADV
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                    <template x-if="p.comprovante && p.comprovante !== 'Sem comprovante'">
+                                        <a :href="p.comprovante" target="_blank" title="Ver Comprovante"
+                                            class="text-blue-400 hover:text-blue-300 hover:underline inline-flex items-center justify-center bg-blue-500/10 p-2 rounded-lg transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                            </svg>
+                                        </a>
+                                    </template>
+                                    <template x-if="!p.comprovante || p.comprovante === 'Sem comprovante'">
+                                        <span
+                                            class="text-red-400 text-xs font-bold bg-red-500/10 px-2.5 py-1.5 rounded-md border border-red-500/20">NÃO
+                                            ENVIADO</span>
+                                    </template>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                                    <button @click="toggleConfirmado(p)"
+                                        :class="p.confirmado ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30 ring-1 ring-emerald-500/50 shadow-[0_0_10px_rgba(16,185,129,0.2)]' : 'bg-slate-800 text-slate-400 border-slate-700'"
+                                        class="px-4 py-1.5 rounded-full text-xs font-bold border focus:outline-none transition-all hover:opacity-80">
+                                        <span x-text="p.confirmado ? 'Sim ✓' : 'Não ✕'"></span>
+                                    </button>
+                                </td>
+                            </tr>
+                        </template>
+                        <tr x-show="palpites.length === 0">
+                            <td colspan="6" class="px-6 py-12 text-center text-slate-500 italic">Nenhum palpite
+                                registrado ainda.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal Apuração -->
+    <div x-show="modalApuracao.open" style="display: none;"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="modalApuracao.open = false"></div>
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl relative z-10 w-full max-w-md overflow-hidden"
+            x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95">
+            <div class="bg-amber-500/10 p-6 border-b border-amber-500/20 text-center">
+                <div
+                    class="mx-auto w-12 h-12 bg-amber-500/20 rounded-full flex items-center justify-center mb-4 border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+                    <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                        </path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-slate-200">Resultado da Apuração</h3>
+            </div>
+            <div class="p-6 space-y-4 text-center">
+                <div class="bg-slate-950/50 p-5 rounded-xl border border-slate-800">
+                    <p class="text-slate-400 text-sm mb-1 uppercase tracking-wider font-semibold">Ganhadores</p>
+                    <p class="text-4xl font-black text-white" x-text="modalApuracao.ganhadores"></p>
+                </div>
+                <div
+                    class="bg-slate-950/50 p-5 rounded-xl border border-emerald-500/20 shadow-[inset_0_0_20px_rgba(16,185,129,0.05)]">
+                    <p class="text-slate-400 text-sm mb-1 uppercase tracking-wider font-semibold">Valor do Prêmio (50%)
+                    </p>
+                    <p class="text-4xl font-black text-emerald-400">R$ <span
+                            x-text="modalApuracao.premio.toFixed(2)"></span></p>
+                </div>
+                <template x-if="modalApuracao.listaGanhadores && modalApuracao.listaGanhadores.length > 0">
+                    <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800 mt-4 text-left">
+                        <p class="text-slate-400 text-sm mb-2 uppercase tracking-wider font-semibold text-center">
+                            Ganhadores:</p>
+                        <ul class="divide-y divide-slate-800/50 max-h-40 overflow-y-auto pr-2">
+                            <template x-for="g in modalApuracao.listaGanhadores">
+                                <li class="py-2 flex justify-between items-center">
+                                    <span class="font-bold text-slate-200" x-text="g.nome"></span>
+                                    <span class="text-xs text-slate-400 font-mono" x-text="g.telefone"></span>
+                                </li>
+                            </template>
+                        </ul>
+                    </div>
+                </template>
+            </div>
+            <div class="p-6 pt-0 space-y-3">
+                <button @click="publicarResultado()"
+                    class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-amber-500/20 active:scale-95 flex justify-center items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    Publicar Resultado Oficial
+                </button>
+                <button @click="modalApuracao.open = false"
+                    class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 px-6 rounded-xl transition-colors border border-slate-700 active:scale-95">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div> <!-- /Admin Content -->
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('admin', () => ({
+                autenticado: localStorage.getItem('adminToken') ? true : false,
+                loginData: { username: '', password: '', error: '', loading: false },
+                config: { pix: '', valor: '0' },
+                novoJogo: { data: '', adversario: '', local: '' },
+                jogos: [],
+                palpites: [],
+                loadingConfig: false,
+                loadingJogo: false,
+                msgConfig: '',
+                msgJogo: '',
+
+                apuracao: {
+                    jogo_id: '',
+                    gols_brasil: '',
+                    gols_adversario: ''
+                },
+                modalApuracao: {
+                    open: false,
+                    ganhadores: 0,
+                    premio: 0,
+                    listaGanhadores: []
+                },
+
+                async fazerLogin() {
+                    this.loginData.error = '';
+                    this.loginData.loading = true;
+                    try {
+                        const res = await fetch('/api/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ username: this.loginData.username, password: this.loginData.password })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            localStorage.setItem('adminToken', data.token);
+                            this.autenticado = true;
+                            this.init(); // Recarregar dados com o token novo
+                        } else {
+                            this.loginData.error = data.error || 'Credenciais inválidas';
+                        }
+                    } catch (e) {
+                        this.loginData.error = 'Erro de conexão com o servidor';
+                    }
+                    this.loginData.loading = false;
+                },
+
+                sair() {
+                    localStorage.removeItem('adminToken');
+                    this.autenticado = false;
+                    this.loginData.username = '';
+                    this.loginData.password = '';
+                },
+
+                formatarData(dt) {
+                    if (!dt) return '';
+                    try {
+                        const d = new Date(dt);
+                        return isNaN(d) ? dt : d.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+                    } catch (e) { return dt; }
+                },
+
+                countryCodes: {
+                    "Alemanha": "de", "Arábia Saudita": "sa", "Argentina": "ar", "Austrália": "au",
+                    "Bélgica": "be", "Bolívia": "bo", "Camarões": "cm", "Canadá": "ca", "Catar": "qa",
+                    "Chile": "cl", "China": "cn", "Colômbia": "co", "Coreia do Sul": "kr", "Costa do Marfim": "ci",
+                    "Costa Rica": "cr", "Croácia": "hr", "Dinamarca": "dk", "Egito": "eg", "Equador": "ec",
+                    "Espanha": "es", "EUA": "us", "França": "fr", "Gana": "gh", "Haiti": "ht",
+                    "Holanda": "nl", "Inglaterra": "gb-eng", "Irã": "ir", "Itália": "it", "Jamaica": "jm",
+                    "Japão": "jp", "Marrocos": "ma", "México": "mx", "Nigéria": "ng", "Nova Zelândia": "nz",
+                    "País de Gales": "gb-wls", "Paraguai": "py", "Peru": "pe", "Polônia": "pl", "Portugal": "pt",
+                    "Senegal": "sn", "Sérvia": "rs", "Suécia": "se", "Suíça": "ch", "Tunísia": "tn",
+                    "Ucrânia": "ua", "Uruguai": "uy", "Venezuela": "ve"
+                },
+
+                getFlagUrl(nomeComEmoji) {
+                    if (!nomeComEmoji) return '';
+                    for (const [country, code] of Object.entries(this.countryCodes)) {
+                        if (nomeComEmoji.includes(country)) {
+                            return `https://flagcdn.com/w40/${code}.png`;
+                        }
+                    }
+                    return '';
+                },
+
+                cleanCountryName(nomeComEmoji) {
+                    if (!nomeComEmoji) return '';
+                    for (const country of Object.keys(this.countryCodes)) {
+                        if (nomeComEmoji.includes(country)) {
+                            return country;
+                        }
+                    }
+                    return nomeComEmoji;
+                },
+
+                jogo_adversario(id) {
+                    const j = this.jogos.find(x => String(x.id) === String(id));
+                    return j ? j.adversario : '';
+                },
+
+                calcularApuracao() {
+                    if (!this.apuracao.jogo_id || this.apuracao.gols_brasil === '' || this.apuracao.gols_adversario === '') {
+                        alert('Preencha o jogo e o placar completo para apurar!');
+                        return;
+                    }
+
+                    const valorBolao = parseFloat(this.config.valor) || 0;
+
+                    // Filtra palpites que pertencem a esse jogo e ESTÃO CONFIRMADOS (PAGOS)
+                    const palpitesDoJogo = this.palpites.filter(p => String(p.jogo_id) === String(this.apuracao.jogo_id) && p.confirmado);
+
+                    const totalConfirmados = palpitesDoJogo.length;
+                    const arrecadado = totalConfirmados * valorBolao;
+                    const premio = arrecadado * 0.50;
+
+                    // Filtra quem acertou na mosca (dentre os que pagaram)
+                    const ganhadores = palpitesDoJogo.filter(p =>
+                        String(p.gols_brasil) === String(this.apuracao.gols_brasil) &&
+                        String(p.gols_adversario) === String(this.apuracao.gols_adversario)
+                    );
+
+                    this.modalApuracao.ganhadores = ganhadores.length;
+                    this.modalApuracao.premio = premio;
+                    this.modalApuracao.listaGanhadores = ganhadores;
+                    this.modalApuracao.open = true;
+                },
+
+                async publicarResultado() {
+                    if(!confirm('Deseja realmente publicar este resultado? Ele ficará visível publicamente no site!')) return;
+                    
+                    try {
+                        const response = await fetch(`/api/jogos/${this.apuracao.jogo_id}/apurar`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` },
+                            body: JSON.stringify({
+                                gols_brasil: this.apuracao.gols_brasil,
+                                gols_adversario: this.apuracao.gols_adversario
+                            })
+                        });
+                        
+                        if(response.ok) {
+                            alert('Resultado publicado com sucesso!');
+                            this.modalApuracao.open = false;
+                        } else {
+                            alert('Erro ao publicar resultado.');
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        alert('Erro na conexão com o servidor.');
+                    }
+                },
+
+                async init() {
+                    if (!this.autenticado) return; // Não carregar dados se não estiver logado
+                    
+                    try {
+                        const resConfig = await fetch('/api/config');
+                        const configData = await resConfig.json();
+                        this.config.pix = configData.pix;
+                        this.config.valor = configData.valor;
+
+                        const resJogos = await fetch('/api/jogos');
+                        this.jogos = await resJogos.json();
+
+                        const resPalpites = await fetch('/api/palpites');
+                        this.palpites = await resPalpites.json();
+                    } catch (e) {
+                        console.error('Erro ao carregar dados:', e);
+                    }
+                },
+
+                async salvarConfig() {
+                    this.loadingConfig = true;
+                    try {
+                        await fetch('/api/config', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` },
+                            body: JSON.stringify(this.config)
+                        });
+                        this.msgConfig = 'Salvo com sucesso!';
+                        setTimeout(() => this.msgConfig = '', 3000);
+                    } catch (e) {
+                        alert('Erro ao salvar.');
+                    }
+                    this.loadingConfig = false;
+                },
+
+                async carregarJogos() {
+                    const res = await fetch('/api/jogos');
+                    this.jogos = await res.json();
+                },
+
+                async adicionarJogo() {
+                    if (!this.novoJogo.data || !this.novoJogo.adversario) return;
+
+                    this.loadingJogo = true;
+                    try {
+                        const res = await fetch('/api/jogos', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` },
+                            body: JSON.stringify(this.novoJogo)
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            this.jogos.push({ ...this.novoJogo, id: data.id });
+                            this.novoJogo = { data: '', adversario: '', local: '' };
+                            this.msgJogo = 'Jogo adicionado!';
+                            setTimeout(() => this.msgJogo = '', 3000);
+                        }
+                    } catch (e) {
+                        alert('Erro ao adicionar jogo.');
+                    }
+                    this.loadingJogo = false;
+                },
+
+                async excluirJogo(id) {
+                    if (!confirm('Tem certeza que deseja excluir este jogo?')) return;
+
+                    try {
+                        const res = await fetch(`/api/jogos/${id}`, { 
+                            method: 'DELETE',
+                            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            this.jogos = this.jogos.filter(j => j.id !== id);
+                        } else {
+                            alert(data.error || 'Erro ao excluir jogo.');
+                        }
+                    } catch (e) {
+                        alert('Erro na requisição para excluir.');
+                    }
+                },
+
+                async toggleConfirmado(p) {
+                    const novoStatus = !p.confirmado;
+                    p.confirmado = novoStatus; // optimistic UI update
+                    try {
+                        await fetch(`/api/palpites/${p.row}/confirmar`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` },
+                            body: JSON.stringify({ confirmado: novoStatus })
+                        });
+                    } catch (e) {
+                        p.confirmado = !novoStatus; // revert on fail
+                        alert('Erro ao atualizar status de pagamento.');
+                    }
+                }
+            }));
+        });
+    </script>
+</body>
+
+</html>
