@@ -612,10 +612,15 @@
                                     formData.append('comprovante', comprovante);
                                 }
 
-                                await fetch('/api/palpites', {
+                                const response = await fetch('/api/palpites', {
                                     method: 'POST',
                                     body: formData
                                 });
+
+                                if (!response.ok) {
+                                    const errData = await response.json();
+                                    throw new Error(errData.error || 'Erro ao salvar palpite');
+                                }
                             }
                         }
                         Swal.fire({
@@ -638,7 +643,7 @@
                             this.etapa = 1;
                         });
                     } catch (e) {
-                        this.mostrarMensagem('Erro ao enviar palpites. Tente novamente.', 'erro');
+                        this.mostrarMensagem(e.message || 'Erro ao enviar palpites. Tente novamente.', 'erro');
                     } finally {
                         this.loading = false;
                     }
