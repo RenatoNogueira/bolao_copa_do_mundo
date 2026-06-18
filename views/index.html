@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bolão Copa 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Alpine Mask Plugin -->
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/mask@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="bg-slate-950 text-slate-200 font-sans min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black selection:bg-emerald-500/30" x-data="bolao()">
     <header class="border-b border-white/10 bg-slate-900/50 backdrop-blur-md shadow-2xl sticky top-0 z-50 overflow-hidden relative">
@@ -545,8 +545,14 @@
                                 });
                             }
                         }
-                        this.mostrarMensagem('Palpites enviados com sucesso! Boa sorte!', 'sucesso');
-                        setTimeout(() => {
+                        Swal.fire({
+                            title: 'Sucesso!',
+                            text: 'Palpites enviados com sucesso! Boa sorte!',
+                            icon: 'success',
+                            background: '#0f172a',
+                            color: '#f8fafc',
+                            confirmButtonColor: '#10b981'
+                        }).then(() => {
                             // Limpar e voltar pra etapa 1
                             this.nome = '';
                             this.telefone = '';
@@ -557,7 +563,7 @@
                                 this.$refs.comprovante.value = '';
                             }
                             this.etapa = 1;
-                        }, 3000);
+                        });
                     } catch (e) {
                         this.mostrarMensagem('Erro ao enviar palpites. Tente novamente.', 'erro');
                     } finally {
@@ -566,9 +572,14 @@
                 },
                 
                 mostrarMensagem(texto, tipo) {
-                    this.mensagem = texto;
-                    this.mensagemTipo = tipo;
-                    setTimeout(() => this.mensagem = '', 5000);
+                    Swal.fire({
+                        title: tipo === 'sucesso' ? 'Sucesso!' : (tipo === 'erro' ? 'Erro' : 'Atenção'),
+                        text: texto,
+                        icon: tipo === 'sucesso' ? 'success' : (tipo === 'erro' ? 'error' : 'warning'),
+                        background: '#0f172a',
+                        color: '#f8fafc',
+                        confirmButtonColor: '#10b981'
+                    });
                 }
             }));
         });

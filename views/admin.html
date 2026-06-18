@@ -7,6 +7,7 @@
     <title>Admin - Bolão Copa 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body
@@ -577,7 +578,7 @@
 
                 calcularApuracao() {
                     if (!this.apuracao.jogo_id || this.apuracao.gols_brasil === '' || this.apuracao.gols_adversario === '') {
-                        alert('Preencha o jogo e o placar completo para apurar!');
+                        Swal.fire({ title: 'Atenção', text: 'Preencha o jogo e o placar completo para apurar!', icon: 'warning', background: '#0f172a', color: '#f8fafc', confirmButtonColor: '#10b981' });
                         return;
                     }
 
@@ -603,7 +604,8 @@
                 },
 
                 async publicarResultado() {
-                    if(!confirm('Deseja realmente publicar este resultado? Ele ficará visível publicamente no site!')) return;
+                    const confirmRes = await Swal.fire({ title: 'Atenção', text: 'Deseja realmente publicar este resultado? Ele ficará visível publicamente no site!', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#3b82f6', confirmButtonText: 'Sim, publicar', cancelButtonText: 'Cancelar', background: '#0f172a', color: '#f8fafc' });
+                    if(!confirmRes.isConfirmed) return;
                     
                     try {
                         const response = await fetch(`/api/jogos/${this.apuracao.jogo_id}/apurar`, {
@@ -616,14 +618,14 @@
                         });
                         
                         if(response.ok) {
-                            alert('Resultado publicado com sucesso!');
+                            Swal.fire({ title: 'Sucesso', text: 'Resultado publicado com sucesso!', icon: 'success', background: '#0f172a', color: '#f8fafc', confirmButtonColor: '#10b981' });
                             this.modalApuracao.open = false;
                         } else {
-                            alert('Erro ao publicar resultado.');
+                            Swal.fire({ title: 'Erro', text: 'Erro ao publicar resultado.', icon: 'error', background: '#0f172a', color: '#f8fafc', confirmButtonColor: '#10b981' });
                         }
                     } catch (e) {
                         console.error(e);
-                        alert('Erro na conexão com o servidor.');
+                        Swal.fire({ title: 'Erro', text: 'Erro na conexão com o servidor.', icon: 'error', background: '#0f172a', color: '#f8fafc', confirmButtonColor: '#10b981' });
                     }
                 },
 
@@ -656,8 +658,9 @@
                         });
                         this.msgConfig = 'Salvo com sucesso!';
                         setTimeout(() => this.msgConfig = '', 3000);
+                        Swal.fire({ title: 'Sucesso', text: 'Configurações salvas!', icon: 'success', background: '#0f172a', color: '#f8fafc', confirmButtonColor: '#10b981', timer: 2000, showConfirmButton: false });
                     } catch (e) {
-                        alert('Erro ao salvar.');
+                        Swal.fire({ title: 'Erro', text: 'Erro ao salvar configurações.', icon: 'error', background: '#0f172a', color: '#f8fafc', confirmButtonColor: '#10b981' });
                     }
                     this.loadingConfig = false;
                 },
@@ -683,15 +686,17 @@
                             this.novoJogo = { data: '', adversario: '', local: '' };
                             this.msgJogo = 'Jogo adicionado!';
                             setTimeout(() => this.msgJogo = '', 3000);
+                            Swal.fire({ title: 'Sucesso', text: 'Jogo adicionado!', icon: 'success', background: '#0f172a', color: '#f8fafc', confirmButtonColor: '#10b981', timer: 2000, showConfirmButton: false });
                         }
                     } catch (e) {
-                        alert('Erro ao adicionar jogo.');
+                        Swal.fire({ title: 'Erro', text: 'Erro ao adicionar jogo.', icon: 'error', background: '#0f172a', color: '#f8fafc', confirmButtonColor: '#10b981' });
                     }
                     this.loadingJogo = false;
                 },
 
                 async excluirJogo(id) {
-                    if (!confirm('Tem certeza que deseja excluir este jogo?')) return;
+                    const confirmRes = await Swal.fire({ title: 'Tem certeza?', text: 'Deseja excluir este jogo?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#3b82f6', confirmButtonText: 'Sim, excluir!', cancelButtonText: 'Cancelar', background: '#0f172a', color: '#f8fafc' });
+                    if (!confirmRes.isConfirmed) return;
 
                     try {
                         const res = await fetch(`/api/jogos/${id}`, { 
@@ -701,11 +706,32 @@
                         const data = await res.json();
                         if (data.success) {
                             this.jogos = this.jogos.filter(j => j.id !== id);
+                            Swal.fire({ title: 'Sucesso', text: 'Jogo excluído.', icon: 'success', background: '#0f172a', color: '#f8fafc', confirmButtonColor: '#10b981', timer: 2000, showConfirmButton: false });
                         } else {
-                            alert(data.error || 'Erro ao excluir jogo.');
+                            Swal.fire({ title: 'Erro', text: data.error || 'Erro ao excluir jogo.', icon: 'error', background: '#0f172a', color: '#f8fafc', confirmButtonColor: '#10b981' });
                         }
                     } catch (e) {
-                        alert('Erro na requisição para excluir.');
+                        Swal.fire({ title: 'Erro', text: 'Erro na requisição para excluir.', icon: 'error', background: '#0f172a', color: '#f8fafc', confirmButtonColor: '#10b981' });
+                    }
+                },
+
+                async excluirPalpite(id) {
+                    const confirmRes = await Swal.fire({ title: 'Tem certeza?', text: 'Deseja excluir este palpite permanentemente? O comprovante também será deletado.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#3b82f6', confirmButtonText: 'Sim, excluir!', cancelButtonText: 'Cancelar', background: '#0f172a', color: '#f8fafc' });
+                    if (!confirmRes.isConfirmed) return;
+                    try {
+                        const response = await fetch(`/api/palpites/${id}`, {
+                            method: 'DELETE',
+                            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            this.palpites = this.palpites.filter(p => p.row !== id);
+                            Swal.fire({ title: 'Excluído!', text: 'Palpite removido com sucesso.', icon: 'success', background: '#0f172a', color: '#f8fafc', confirmButtonColor: '#10b981', timer: 2000, showConfirmButton: false });
+                        } else {
+                            Swal.fire({ title: 'Erro', text: data.error || 'Erro ao excluir palpite.', icon: 'error', background: '#0f172a', color: '#f8fafc', confirmButtonColor: '#10b981' });
+                        }
+                    } catch (e) {
+                        Swal.fire({ title: 'Erro', text: 'Erro ao excluir palpite.', icon: 'error', background: '#0f172a', color: '#f8fafc', confirmButtonColor: '#10b981' });
                     }
                 },
 
@@ -720,7 +746,7 @@
                         });
                     } catch (e) {
                         p.confirmado = !novoStatus; // revert on fail
-                        alert('Erro ao atualizar status de pagamento.');
+                        Swal.fire({ title: 'Erro', text: 'Erro ao atualizar status de pagamento.', icon: 'error', background: '#0f172a', color: '#f8fafc', confirmButtonColor: '#10b981' });
                     }
                 }
             }));
