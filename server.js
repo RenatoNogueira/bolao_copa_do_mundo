@@ -214,7 +214,12 @@ app.delete('/api/jogos/:id', requireAdmin, async (req, res) => {
 app.post('/api/palpites', upload.single('comprovante'), async (req, res) => {
   try {
     const { jogo_id, nome, telefone, gols_brasil, gols_adversario } = req.body;
-    const comprovanteUrl = req.file ? `/uploads/${req.file.filename}` : 'Sem comprovante';
+    
+    if (!req.file) {
+        return res.status(400).json({ error: 'O comprovante de pagamento é obrigatório' });
+    }
+
+    const comprovanteUrl = `/uploads/${req.file.filename}`;
     
     await pool.query(
         'INSERT INTO palpites (jogo_id, nome, telefone, gols_brasil, gols_adversario, comprovante, confirmado) VALUES (?, ?, ?, ?, ?, ?, ?)',

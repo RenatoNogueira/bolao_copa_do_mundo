@@ -286,7 +286,7 @@
                     </div>
                     
                     <div class="mt-6 pt-6 border-t border-slate-700/50 text-left max-w-md mx-auto">
-                        <label class="block text-sm font-medium text-slate-300 mb-2">Já pagou? Anexe o comprovante (Opcional)</label>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Anexe o comprovante de pagamento (Obrigatório)</label>
                         <input type="file" x-ref="comprovante" accept="image/*,.pdf" class="block w-full text-sm text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-500/10 file:text-emerald-400 hover:file:bg-emerald-500/20 transition-colors file:cursor-pointer">
                     </div>
                 </div>
@@ -590,6 +590,12 @@
                     
                     try {
                         const comprovante = this.$refs.comprovante.files[0];
+                        
+                        if (!comprovante) {
+                            this.loading = false;
+                            this.mostrarMensagem('Você precisa anexar o comprovante de pagamento!', 'erro');
+                            return;
+                        }
                         
                         for (const jogo of this.jogos) {
                             if (this.jogoEncerrado(jogo.data)) continue; // Don't send closed games
