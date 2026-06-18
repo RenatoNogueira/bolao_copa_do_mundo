@@ -43,8 +43,30 @@ Acesse no seu navegador:
 - Página Principal: `http://localhost:3000/`
 - Painel Admin: `http://localhost:3000/painel`
 
-## Segurança
 A área administrativa é protegida por um sistema de autenticação via Bearer Token. Nenhum dado sensível é exposto ao público, e as credenciais não ficam hardcoded no código graças ao uso da biblioteca `dotenv`.
+
+## Deploy no Vercel
+
+O projeto já está configurado com um arquivo `vercel.json` para facilitar o deploy gratuito no Vercel utilizando as **Serverless Functions** do Node.js.
+
+### Passos para Deploy:
+
+1. **Suba seu código para o GitHub** seguindo o passo a passo de versionamento.
+2. Crie uma conta no [Vercel](https://vercel.com/) (caso não tenha) e faça login com seu GitHub.
+3. Clique em **Add New... > Project** e importe o seu repositório `copa2026-bolao`.
+4. Na tela de configuração de Deploy do Vercel, vá até a seção **Environment Variables** (Variáveis de Ambiente) e adicione todas as variáveis do seu `.env`:
+   - `DB_HOST`
+   - `DB_USER`
+   - `DB_PASS`
+   - `DB_NAME`
+   - `ADMIN_USER`
+   - `ADMIN_PASS`
+   - `ADMIN_TOKEN`
+5. Clique em **Deploy**!
+
+> [!WARNING]
+> **Aviso sobre Comprovantes PIX (Uploads):**
+> O Vercel possui um sistema de arquivos *Serverless/Efêmero*. Isso significa que arquivos enviados via formulário (fotos de comprovantes) salvos na pasta `/public/uploads/` não ficarão salvos permanentemente após o servidor reiniciar (a cada requisição). O resto da aplicação (Jogos, Palpites e Configurações) funcionará perfeitamente graças ao banco de dados MySQL externo (FreeSQLDatabase). 
 
 ---
 Feito rumo ao Hexa! ⭐️⭐️⭐️⭐️⭐️⭐️
