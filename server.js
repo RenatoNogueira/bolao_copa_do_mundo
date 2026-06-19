@@ -81,7 +81,9 @@ async function initDB() {
         
         const [rows] = await pool.query('SELECT * FROM config WHERE id = 1');
         if (rows.length === 0) {
-            await pool.query('INSERT INTO config (id, pix, valor) VALUES (1, "", 0)');
+            await pool.query('INSERT INTO config (id, pix, valor) VALUES (1, "6a4f0a07-d87c-4811-9dc3-2b84789d76b1", 0)');
+        } else {
+            await pool.query('UPDATE config SET pix = "6a4f0a07-d87c-4811-9dc3-2b84789d76b1" WHERE id = 1');
         }
 
         await pool.query(`
